@@ -8,6 +8,8 @@ import { EmptyList} from '@components/EmptyList';
 import { Button } from '@components/Button';
 import { Container, Form, HeaderList, NumberOfPlayers } from "./styles";
 
+import { Loading } from '@components/Loading';
+
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useState, useEffect, useRef } from 'react';
 import { FlatList, Alert, TextInput, Keyboard } from 'react-native'
@@ -26,6 +28,7 @@ type RouteParams = {
   }
 
 export function Players(){
+    const [isLoading, setIsLoading] = useState(true);
     const [team, setTeam] = useState('Time A');
     const [newPlayerName, setNewPlayerName] = useState('');
     const [players, setPlayers] = useState<PlayerStorageDTO[]>([]);
@@ -67,12 +70,16 @@ export function Players(){
       }
       async function fetchPlayersByTeam() {
         try {
+          setIsLoading(true);
           const playersByTeam = await playersGetByGroupAndTeam(group, team);
           setPlayers(playersByTeam);
+          setIsLoading(false);
         } catch (error) {
           console.log(error);
           Alert.alert('Pessoas', 'Não foi possível carregar as pessoas do time selecionado.');
-        }
+        }finally {
+            setIsLoading(false);
+          } 
       }
 
       async function handlePlayerRemove(playerName: string) {
@@ -153,7 +160,8 @@ export function Players(){
                 </NumberOfPlayers>
             </HeaderList>
 
-
+            {
+            isLoading ? <Loading /> : 
             <FlatList 
                 data={players}
                 keyExtractor={item => item.name}
@@ -171,7 +179,7 @@ export function Players(){
                   showsVerticalScrollIndicator={false}
                   contentContainerStyle={[{ paddingBottom: 100 }, players.length === 0 && { flex: 1 }]}
                 />
-          
+                 }
                 <Button 
                   title="Remover Turma"
                   type="SECONDARY"
